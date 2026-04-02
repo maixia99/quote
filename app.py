@@ -1,75 +1,111 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-# ==========================================
-# 1. 常量配置 (根据你的 Excel 提取)
-# ==========================================
-DENSITY = 2.71          # 铝密度
-FLATTENING_FEE = 1500.0 # 开平费用 (元/吨)
-COLORING_FEE = 5000.0   # 上色费用 (元/吨)
-LOSS_RATE = 1.15        # 损耗系数
-AL_PROCESSING_FEE = 15.0# 铝板加工费 (元/m²)
+# 设置 Streamlit 网页布局为宽屏，去掉多余边距
+st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 保温材料物料库
-MATERIAL_DB = {
-    "热固": {"price": 4.4, "backboard": 0.0, "composite_times": 1.0, "glue": 2.0, "labor": 8.0},
-    "120容重岩棉（打孔背板）": {"price": 3.3, "backboard": 8.5, "composite_times": 2.0, "glue": 2.0, "labor": 8.0},
-    "130容重岩棉（打孔背板）": {"price": 3.52, "backboard": 8.5, "composite_times": 2.0, "glue": 2.0, "labor": 8.0},
-    "130容重岩棉（不打孔背板）": {"price": 3.52, "backboard": 0.0, "composite_times": 2.0, "glue": 2.0, "labor": 8.0}
-}
+# 这里把完整的 HTML+CSS+JS 代码作为一个超大字符串存起来
+html_code = """
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>铝板保温装饰一体板报价系统</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 24px 16px;
+            color: #1a2c3e;
+        }
+        .container { max-width: 1300px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1e3c5c 0%, #2b4c6e 100%);
+            color: white; padding: 24px 32px; border-radius: 28px;
+            margin-bottom: 28px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .header h1 { margin: 0 0 8px 0; font-weight: 700; font-size: 1.8rem; }
+        .header p { margin: 0; opacity: 0.9; font-size: 0.95rem; }
+        .dashboard { display: flex; flex-wrap: wrap; gap: 28px; }
+        .control-panel {
+            flex: 1; min-width: 300px; background: white; border-radius: 28px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 28px; height: fit-content;
+        }
+        .result-panel { display: none !important; }
+        .param-group { margin-bottom: 28px; border-bottom: 1px solid #e9eef3; padding-bottom: 20px; }
+        .param-group h3 { font-size: 1.1rem; margin: 0 0 18px 0; color: #1e4663; font-weight: 600; }
+        .param-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; justify-content: space-between; }
+        .param-label { font-weight: 500; width: 115px; font-size: 0.88rem; color: #2c4b6e; }
+        .param-input { flex: 1; min-width: 150px; }
+        select, input {
+            width: 100%; padding: 10px 12px; border-radius: 14px;
+            border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.9rem;
+            font-family: inherit; transition: 0.2s;
+        }
+        select:focus, input:focus { outline: none; border-color: #2b6e9e; box-shadow: 0 0 0 3px rgba(43,110,158,0.15); }
+        .input-error { border-color: #e53e3e !important; box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15) !important; }
+        .error-tip { font-size: 0.75rem; color: #e53e3e; margin-top: 4px; display: none; }
+        .error-tip.show { display: block; }
+        .price-highlight {
+            background: linear-gradient(135deg, #f0f7fc 0%, #e8f0f7 100%);
+            border-radius: 24px; padding: 24px 20px; margin-top: 20px;
+            text-align: center; border: 1px solid #cde0ef;
+        }
+        .total-price { font-size: 3rem; font-weight: 800; color: #1a6b4a; margin: 12px 0; letter-spacing: -0.5px; }
+        .total-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: #5d7f9e; font-weight: 500; }
+        .unit { font-size: 1rem; font-weight: normal; }
+        .freight-tip { text-align: center; margin-top: 12px; font-size: 0.9rem; color: #d93025; font-weight: 500; }
+        .footer-note { font-size: 0.7rem; text-align: center; margin-top: 28px; color: #8ba0b5; background: white; border-radius: 20px; padding: 10px; }
+        @media (max-width: 700px) { .param-label { width: 100%; } .total-price { font-size: 2.2rem; } }
+    </style>
+</head>
+<body>
 
-# ==========================================
-# 2. 页面与UI配置
-# ==========================================
-st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="centered")
+<div class="container">
+    <div class="header">
+        <h1>📊 铝板保温装饰一体板 · 报价系统</h1>
+        <p>铝锭价格 + 毛利系数 可自由调整 | 实时计算报价</p >
+    </div>
 
-st.title("🏗️ 铝板保温装饰一体板报价系统")
-st.markdown("调整下方参数，系统将自动生成最新的控制价。")
-
-# ==========================================
-# 3. 交互输入区
-# ==========================================
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("📊 基础参数")
-    al_price = st.number_input("今日铝锭价格 (元/吨)", value=20000.0, step=100.0)
-    al_thickness = st.number_input("铝板厚度 (mm)", value=1.5, step=0.1)
-    if al_thickness < 1.5:
-        st.warning("⚠️ 提示：标准工艺厚度建议≥1.5mm")
-    margin = st.number_input("毛利系数 (默认10个点填0.9)", value=0.9, step=0.01)
-
-with col2:
-    st.subheader("🧱 材料配置")
-    material_name = st.selectbox("选择保温材料类型", options=list(MATERIAL_DB.keys()), index=2)
-    insulation_thickness = st.number_input("保温层厚度 (cm)", value=4.0, step=0.5)
-
-st.divider() 
-
-# ==========================================
-# 4. 核心计算逻辑
-# ==========================================
-mat = MATERIAL_DB[material_name]
-
-# 1. 铝基材成本 = (厚度 * 密度 * (铝锭价 + 开平 + 上色) / 1000) * 损耗
-al_ton_cost = al_price + FLATTENING_FEE + COLORING_FEE
-al_base_cost = (al_thickness * DENSITY * al_ton_cost / 1000) * LOSS_RATE
-
-# 2. 保温材料成本 = 厚度 * 单价
-insulation_cost = insulation_thickness * mat["price"]
-
-# 3. 复合成本 = (胶水费 + 复合人工) * 复合次数
-composite_cost = (mat["glue"] + mat["labor"]) * mat["composite_times"]
-
-# 4. 总成本
-total_cost = al_base_cost + AL_PROCESSING_FEE + insulation_cost + mat["backboard"] + composite_cost
-
-# 5. 最终报价
-if margin > 0:
-    final_price = total_cost / margin
-else:
-    final_price = 0.0
-
-# ==========================================
-# 5. 结果展示 (已精简)
-# ==========================================
-st.metric(label=f"📝 【{material_name}】最终建议系统报价", value=f"¥ {final_price:.2f} / m²")
+    <div class="dashboard">
+        <div class="control-panel">
+            <div class="param-group">
+                <h3>产品配置</h3>
+                <div class="param-row">
+                    <span class="param-label">保温芯材</span>
+                    <div class="param-input">
+                        <select id="coreType">
+                            <option value="thermal">热固改性保温板</option>
+                            <option value="rock120">120容重岩棉</option>
+                            <option value="rock130">130容重岩棉</option>
+                            <option value="rock140">140容重岩棉</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">背板类型</span>
+                    <div class="param-input">
+                        <select id="backType">
+                            <option value="perforated">打孔背板</option>
+                            <option value="nonPerforated">不打孔背板</option>
+                            <option value="cementCloth">水泥基布</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">铝板饰面工艺</span>
+                    <div class="param-input">
+                        <select id="surfaceProcess">
+                            <option value="roller">辊涂</option>
+                            <option value="spray">喷涂</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">铝板厚度 (mm)</span>
+                    <div class="param-input">
+                        <input type="number" id="thickness" step="0.1" value="1.5" min="0.1">
+                        <div class="error-tip" id="thicknessError">喷
