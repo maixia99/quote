@@ -87,6 +87,9 @@ html_code = """
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 16px;
+            /* 让下拉框里的文字居中 */
+            text-align: center;
+            text-align-last: center;
         }
         select:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
@@ -161,7 +164,7 @@ html_code = """
 
         @media (max-width: 600px) { 
             .param-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 20px;} 
-            .param-label { width: 100%; margin-bottom: 4px;} 
+            .param-label { width: 100%; margin-bottom: 4px; text-align: center;} /* 手机端标签也居中 */
             .total-price { font-size: 2.8rem; } 
             .header { padding: 24px 20px; }
             .control-panel { padding: 24px 20px; }
