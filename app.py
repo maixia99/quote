@@ -21,7 +21,6 @@ html_code = """
             padding: 20px;
             color: #1e293b;
         }
-        /* 1. 收缩界面宽度，居中显示 */
         .container { 
             max-width: 800px; 
             margin: 0 auto; 
@@ -71,7 +70,6 @@ html_code = """
         }
         .param-label { font-weight: 600; font-size: 0.95rem; color: #475569; }
         
-        /* 表单控件美化 */
         select {
             width: 100%; 
             padding: 12px 16px; 
@@ -92,7 +90,6 @@ html_code = """
         }
         select:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        /* 2. 全新的步进器 (加减号) 样式 */
         .number-control {
             display: flex;
             align-items: center;
@@ -137,7 +134,6 @@ html_code = """
             box-shadow: none;
             width: 100%;
         }
-        /* 隐藏原生的数字箭头 */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
@@ -146,7 +142,6 @@ html_code = """
         .error-tip { font-size: 0.8rem; color: #ef4444; margin-top: 6px; display: none; font-weight: 500;}
         .error-tip.show { display: block; }
 
-        /* 3. 底部报价大卡片美化 */
         .price-highlight {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border-radius: 20px; 
@@ -240,17 +235,17 @@ html_code = """
                 </div>
             </div>
             <div class="param-row">
-                <span class="param-label">期望毛利系数</span>
+                <span class="param-label">公司毛利 (%)</span>
                 <div class="number-control">
                     <button class="stepper-btn minus">-</button>
-                    <input type="number" id="profitFactor" step="0.01" value="0.90" min="0.10">
+                    <input type="number" id="profitPercentage" step="1" value="10" min="0" max="99">
                     <button class="stepper-btn plus">+</button>
                 </div>
             </div>
         </div>
 
         <div class="price-highlight">
-            <div class="total-label">系统建议系统底价</div>
+            <div class="total-label">系统建议底价</div>
             <div class="total-price" id="liveQuote">--.-- <span class="unit">元/㎡</span></div>
             <div class="freight-tip">⚠️ 此报价暂不含运费</div>
         </div>
@@ -289,7 +284,7 @@ html_code = """
         const elThicknessError = document.getElementById('thicknessError');
         const elInsulThick = document.getElementById('insulThick');
         const elAlPrice = document.getElementById('aluminumPrice');
-        const elProfit = document.getElementById('profitFactor');
+        const elProfitPercent = document.getElementById('profitPercentage');
         const elLiveQuote = document.getElementById('liveQuote');
 
         function validateThickness() {
@@ -313,9 +308,14 @@ html_code = """
             const thickness = parseFloat(elThickness.value) || 1.5;
             const alPrice = parseFloat(elAlPrice.value) || 20000;
             const insulThick = parseFloat(elInsulThick.value) || 4.0;
-            const margin = parseFloat(elProfit.value) || 0.9;
+            const profitPercent = parseFloat(elProfitPercent.value) || 10;
             const isSpray = elSurfaceProcess.value === 'spray';
             
+            // 将输入的 10% 转换回 0.9 的除数系数
+            // 算法：1 - (10 / 100) = 0.9
+            const marginFactor = 1 - (profitPercent / 100);
+            const safeMarginFactor = Math.max(marginFactor, 0.01); // 避免除以0或负数
+
             const safeThickness = isSpray ? Math.max(thickness, 1.5) : Math.max(thickness, 0.1);
 
             const processAddCost = isSpray ? SPRAY_ADD_PRICE : 0;
@@ -330,7 +330,7 @@ html_code = """
             const compositeCost = material.compTimes * (COMPOSITE_GLUE + COMPOSITE_LABOR);
 
             const totalCost = totalAlCost + insulationCost + backboardCost + compositeCost + processAddCost;
-            return Math.max(totalCost / Math.max(margin, 0.1), 0);
+            return Math.max(totalCost / safeMarginFactor, 0);
         }
 
         function updateUI() {
@@ -354,22 +354,25 @@ html_code = """
             }
         }
 
-        // 处理加减号逻辑
+        // 处理加减号逻辑 (增加了最大值限制的支持)
         document.querySelectorAll('.stepper-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                e.preventDefault(); // 防止默认提交等行为
+                e.preventDefault();
                 const isPlus = this.classList.contains('plus');
                 const input = this.parentElement.querySelector('input');
                 const step = parseFloat(input.getAttribute('step')) || 1;
                 const min = parseFloat(input.getAttribute('min')) || 0;
+                // 读取 max 属性，如果没有设置则默认无上限
+                const max = input.hasAttribute('max') ? parseFloat(input.getAttribute('max')) : Infinity;
+                
                 let val = parseFloat(input.value) || 0;
                 
-                // 解决JS浮点数相加减的精度问题
                 const getDecimals = (num) => (num.toString().split('.')[1] || '').length;
                 const maxDecimals = Math.max(getDecimals(val), getDecimals(step));
                 
                 if (isPlus) {
                     val += step;
+                    if (val > max) val = max;
                 } else {
                     val -= step;
                     if (val < min) val = min;
@@ -380,10 +383,10 @@ html_code = """
             });
         });
 
-        // 监听其他事件
-        [elThickness, elAlPrice, elProfit, elInsulThick].forEach(el => {
+        // 监听输入
+        [elThickness, elAlPrice, elProfitPercent, elInsulThick].forEach(el => {
             el.addEventListener('input', updateUI);
-            el.addEventListener('blur', updateUI); // 失去焦点也算一遍防呆
+            el.addEventListener('blur', updateUI); 
         });
         elSurfaceProcess.addEventListener('change', updateUI);
         elCoreType.addEventListener('change', updateUI);
@@ -396,5 +399,5 @@ html_code = """
 </html>
 """
 
-# 因为界面变紧凑了，高度也可以稍微调小一点，确保没有滚动条遮挡
+# 使用 Streamlit 渲染
 components.html(html_code, height=880, scrolling=True)
