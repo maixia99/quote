@@ -1,11 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. 设置网页布局为宽屏
 st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 2. 把完整的 HTML+CSS+JS 代码作为一个超大字符串存起来
-# 注意开头的三个引号
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -68,7 +65,7 @@ html_code = """
 <div class="container">
     <div class="header">
         <h1>📊 铝板保温装饰一体板 · 报价系统</h1>
-        <p>铝锭价格 + 毛利系数 可自由调整 | 实时计算报价</p >
+        <p>铝锭价格 + 毛利系数 可自由调整 | 实时计算报价</p>
     </div>
 
     <div class="dashboard">
@@ -213,4 +210,57 @@ html_code = """
             const inputs = getSafeInputs();
 
             const processAddCost = inputs.isSpray ? SPRAY_ADD_PRICE : 0;
-            const backboardCost = material.noBackboard ? 0 : (BACK
+            const backboardCost = material.noBackboard ? 0 : (BACKBOARDS[backKey]?.price || 0);
+
+            const alWeightSqm = inputs.thickness * AL_DENSITY;
+            const alTonCost = inputs.alPrice + FEES.flattening + FEES.coloring;
+            const alBaseCostWithLoss = (alWeightSqm * alTonCost / 1000) * FEES.lossRate;
+            const totalAlCost = alBaseCostWithLoss + FEES.processing;
+
+            const insulationCost = inputs.insulThick * material.price;
+            const compositeCost = material.compTimes * (COMPOSITE_GLUE + COMPOSITE_LABOR);
+
+            const totalCost = totalAlCost + insulationCost + backboardCost + compositeCost + processAddCost;
+            return Math.max(totalCost / inputs.margin, 0);
+        }
+
+        function updateUI() {
+            const coreKey = elCoreType.value;
+            const material = CORE_MATERIALS[coreKey];
+            elBackType.disabled = !!material.noBackboard;
+
+            if (!validateThickness()) {
+                elLiveQuote.innerHTML = `<span style="color: #e53e3e; font-size: 1.5rem;">✘ 喷涂厚度需≥1.5mm</span>`;
+                return;
+            }
+            
+            const backKey = material.noBackboard ? 'perforated' : elBackType.value;
+            const quoteResult = calculatePrice(coreKey, backKey);
+            
+            if (quoteResult !== null) {
+                elLiveQuote.innerHTML = `¥ ${quoteResult.toFixed(2)} <span class="unit">元/㎡</span>`;
+            } else {
+                elLiveQuote.textContent = '--.-- 元/㎡';
+            }
+        }
+
+        function bindEvents() {
+            [elThickness, elAlPrice, elProfit, elInsulThick].forEach(el => {
+                el.addEventListener('input', updateUI);
+                el.addEventListener('change', updateUI);
+            });
+            elSurfaceProcess.addEventListener('change', updateUI);
+            elCoreType.addEventListener('change', updateUI);
+            elBackType.addEventListener('change', updateUI);
+            window.addEventListener('resize', updateUI);
+        }
+
+        bindEvents();
+        updateUI(); 
+    });
+</script>
+</body>
+</html>
+"""
+
+components.html(html_code, height=950, scrolling=True)
