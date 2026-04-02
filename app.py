@@ -6,7 +6,7 @@ import os
 # 设置网页布局
 st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 完整的 HTML+CSS+JS 代码 (使用了 LOGO_PLACEHOLDER 作为图片的插槽)
+# 完整的 HTML+CSS+JS 代码
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -400,17 +400,21 @@ html_code = """
 """
 
 # ==========================================
-# 动态加载本地的 logo.png 并转为网页能识别的编码
+# 动态加载本地的 logo.png (增加了绝对路径定位，确保服务器100%能找到)
 # ==========================================
-logo_path = "logo.png"
+
+# 获取当前脚本的绝对目录路径
+current_dir = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(current_dir, "logo.png")
+
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
-    # 替换占位符，插入真实图片，高度设为 60px 居中
+    # 替换占位符，插入真实图片
     logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 64px; margin-bottom: 12px; object-fit: contain;">'
 else:
-    # 如果 GitHub 上还没上传名字叫 logo.png 的图片，先临时显示一个默认图标防止报错
-    logo_html = '<div style="font-size: 44px; margin-bottom: 10px;">📊</div>'
+    # 万一服务器还是抽风没找到，显示报错文字帮助我们排查
+    logo_html = f'<div style="color: yellow; font-size: 14px; margin-bottom: 10px;">(Logo载入中... 请在Streamlit后台点击 Reboot)</div>'
 
 final_html = html_code.replace("LOGO_PLACEHOLDER", logo_html)
 
