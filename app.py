@@ -18,7 +18,7 @@ html_code = """
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #f1f5f9;
+            background: #ffffff; /* 🌟 这里改成了纯白色 */
             margin: 0;
             padding: 20px;
             color: #1e293b;
@@ -42,7 +42,7 @@ html_code = """
         .control-panel {
             background: white; 
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06); /* 🌟 加强了一点阴影，使其在白底上更立体 */
             padding: 32px; 
         }
         .param-group { margin-bottom: 32px; }
@@ -400,20 +400,17 @@ html_code = """
 """
 
 # ==========================================
-# 动态加载本地的 logo.png (增加了绝对路径定位，确保服务器100%能找到)
+# 动态加载本地的 logo.png
 # ==========================================
 
-# 获取当前脚本的绝对目录路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(current_dir, "logo.png")
 
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
-    # 替换占位符，插入真实图片
     logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 64px; margin-bottom: 12px; object-fit: contain;">'
 else:
-    # 万一服务器还是抽风没找到，显示报错文字帮助我们排查
     logo_html = f'<div style="color: yellow; font-size: 14px; margin-bottom: 10px;">(Logo载入中... 请在Streamlit后台点击 Reboot)</div>'
 
 final_html = html_code.replace("LOGO_PLACEHOLDER", logo_html)
