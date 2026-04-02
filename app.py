@@ -9,11 +9,9 @@ st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout=
 # 2. 注入 CSS 强制把 Streamlit 的外围背景也变成纯白色，并隐藏多余留白
 st.markdown("""
     <style>
-    /* 强制 Streamlit 整个页面底色为纯白 */
     .stApp {
         background-color: #ffffff !important;
     }
-    /* 隐藏顶部默认空白和菜单栏，让界面更清爽 */
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 0rem !important;
@@ -35,7 +33,7 @@ html_code = """
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #ffffff; /* 内部网页底色也为白 */
+            background: #ffffff;
             margin: 0;
             padding: 10px 20px;
             color: #1e293b;
@@ -44,17 +42,17 @@ html_code = """
             max-width: 800px; 
             margin: 0 auto; 
         }
+        
+        /* 修改了头部样式：去掉了深色背景和阴影，文字改为深色 */
         .header {
-            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-            color: white; 
-            padding: 35px 32px 30px 32px; 
-            border-radius: 20px;
-            margin-bottom: 24px; 
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+            background: transparent; 
+            color: #0f172a; 
+            padding: 10px 20px 20px 20px; 
+            margin-bottom: 10px; 
             text-align: center;
         }
-        .header h1 { margin: 0 0 10px 0; font-weight: 700; font-size: 1.8rem; letter-spacing: 1px;}
-        .header p { margin: 0; opacity: 0.8; font-size: 0.95rem; }
+        .header h1 { margin: 0 0 10px 0; font-weight: 800; font-size: 1.8rem; letter-spacing: 1px; color: #0f172a;}
+        .header p { margin: 0; color: #64748b; font-size: 0.95rem; font-weight: 500;}
         
         .control-panel {
             background: white; 
@@ -185,7 +183,7 @@ html_code = """
             .param-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 20px;} 
             .param-label { width: 100%; margin-bottom: 4px; text-align: center;} 
             .total-price { font-size: 2.8rem; } 
-            .header { padding: 28px 20px 24px 20px; }
+            .header { padding: 10px 20px 20px 20px; }
             .control-panel { padding: 24px 20px; }
         }
     </style>
@@ -418,7 +416,7 @@ html_code = """
 """
 
 # ==========================================
-# 动态加载本地的 logo.png (增加了尺寸和抗锯齿优化)
+# 动态加载本地的 logo.png
 # ==========================================
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -427,7 +425,6 @@ logo_path = os.path.join(current_dir, "logo.png")
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
-    # 调整了这里：高度增加到了 90px，宽度自适应，并加入高清抗锯齿样式
     logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 90px; width: auto; margin-bottom: 16px; object-fit: contain; image-rendering: -webkit-optimize-contrast; display: inline-block;">'
 else:
     logo_html = f'<div style="color: yellow; font-size: 14px; margin-bottom: 10px;">(Logo载入中... 请在Streamlit后台点击 Reboot)</div>'
