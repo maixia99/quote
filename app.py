@@ -1,10 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 设置 Streamlit 网页布局为宽屏，去掉多余边距
+# 1. 设置网页布局为宽屏
 st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 这里把完整的 HTML+CSS+JS 代码作为一个超大字符串存起来
+# 2. 把完整的 HTML+CSS+JS 代码作为一个超大字符串存起来
+# 注意开头的三个引号
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -108,4 +109,108 @@ html_code = """
                     <span class="param-label">铝板厚度 (mm)</span>
                     <div class="param-input">
                         <input type="number" id="thickness" step="0.1" value="1.5" min="0.1">
-                        <div class="error-tip" id="thicknessError">喷
+                        <div class="error-tip" id="thicknessError">喷涂工艺铝板厚度不能小于1.5mm</div>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">保温厚度 (cm)</span>
+                    <div class="param-input">
+                        <input type="number" id="insulThick" step="0.5" value="4.0" min="0.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="param-group">
+                <h3>价格参数</h3>
+                <div class="param-row">
+                    <span class="param-label">铝锭价格 (元/吨)</span>
+                    <div class="param-input">
+                        <input type="number" id="aluminumPrice" step="500" value="20000" min="10000">
+                    </div>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">毛利系数</span>
+                    <div class="param-input">
+                        <input type="number" id="profitFactor" step="0.01" value="0.9" min="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-highlight">
+                <div class="total-label">当前配置 报价</div>
+                <div class="total-price" id="liveQuote">--.-- <span class="unit">元/㎡</span></div>
+                <div class="freight-tip">此报价不含运费</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-note">铝板保温装饰一体板报价系统 | 参数可调，实时计算</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const AL_DENSITY = 2.71;             
+        const COMPOSITE_LABOR = 10;          
+        const COMPOSITE_GLUE = 3;            
+        const SPRAY_ADD_PRICE = 15;          
+        
+        const FEES = { flattening: 1500, coloring: 5000, processing: 15, lossRate: 1.15 };
+
+        const CORE_MATERIALS = {
+            thermal: { name: "热固改性保温板", price: 4.4, compTimes: 1, noBackboard: true },
+            rock120: { name: "120容重岩棉", price: 3.3, compTimes: 2, noBackboard: false },
+            rock130: { name: "130容重岩棉", price: 3.52, compTimes: 2, noBackboard: false },
+            rock140: { name: "140容重岩棉", price: 3.85, compTimes: 2, noBackboard: false }
+        };
+
+        const BACKBOARDS = {
+            perforated: { name: "打孔背板", price: 8.5 },
+            nonPerforated: { name: "不打孔背板", price: 7.5 },
+            cementCloth: { name: "水泥基布", price: 4.0 }
+        };
+
+        const elCoreType = document.getElementById('coreType');
+        const elBackType = document.getElementById('backType');
+        const elSurfaceProcess = document.getElementById('surfaceProcess');
+        const elThickness = document.getElementById('thickness');
+        const elThicknessError = document.getElementById('thicknessError');
+        const elInsulThick = document.getElementById('insulThick');
+        const elAlPrice = document.getElementById('aluminumPrice');
+        const elProfit = document.getElementById('profitFactor');
+        const elLiveQuote = document.getElementById('liveQuote');
+
+        function validateThickness() {
+            const thickness = parseFloat(elThickness.value) || 1.5;
+            const isSpray = elSurfaceProcess.value === 'spray';
+            if (isSpray && thickness < 1.5) {
+                elThickness.classList.add('input-error');
+                elThicknessError.classList.add('show');
+                return false;
+            } else {
+                elThickness.classList.remove('input-error');
+                elThicknessError.classList.remove('show');
+                return true;
+            }
+        }
+
+        function getSafeInputs() {
+            const thickness = parseFloat(elThickness.value) || 1.5;
+            const alPrice = parseFloat(elAlPrice.value) || 20000;
+            const insulThick = parseFloat(elInsulThick.value) || 4.0;
+            const margin = parseFloat(elProfit.value) || 0.9;
+            const isSpray = elSurfaceProcess.value === 'spray';
+            return {
+                thickness: isSpray ? Math.max(thickness, 1.5) : Math.max(thickness, 0.1),
+                alPrice: Math.max(alPrice, 10000),
+                insulThick: Math.max(insulThick, 0.5),
+                margin: Math.max(margin, 0.1),
+                isSpray: isSpray
+            };
+        }
+
+        function calculatePrice(coreKey, backKey) {
+            const material = CORE_MATERIALS[coreKey];
+            if (!material) return null;
+            const inputs = getSafeInputs();
+
+            const processAddCost = inputs.isSpray ? SPRAY_ADD_PRICE : 0;
+            const backboardCost = material.noBackboard ? 0 : (BACK
