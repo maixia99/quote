@@ -70,15 +70,6 @@ else:
     final_price = 0.0
 
 # ==========================================
-# 5. 结果展示
+# 5. 结果展示 (已精简)
 # ==========================================
 st.metric(label=f"📝 【{material_name}】最终建议系统报价", value=f"¥ {final_price:.2f} / m²")
-
-with st.expander("📄 查看成本核算明细"):
-    st.markdown(f"""
-    * **铝板含损耗成本:** ¥ {al_base_cost:.2f} / m²
-    * **铝板加工费:** ¥ {AL_PROCESSING_FEE:.2f} / m²
-    * **保温材料纯成本:** ¥ {insulation_cost:.2f} / m²
-    * **背板费用:** ¥ {mat['backboard']:.2f} / m²
-    * **胶水与复合人工:** ¥ {composite_cost:.2f} / m²
-    """)
