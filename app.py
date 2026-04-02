@@ -238,7 +238,7 @@ html_code = """
                 <span class="param-label">公司毛利 (%)</span>
                 <div class="number-control">
                     <button class="stepper-btn minus">-</button>
-                    <input type="number" id="profitPercentage" step="1" value="10" min="0" max="99">
+                    <input type="number" id="profitPercentage" step="0.1" value="10.0" min="0" max="99">
                     <button class="stepper-btn plus">+</button>
                 </div>
             </div>
@@ -311,10 +311,9 @@ html_code = """
             const profitPercent = parseFloat(elProfitPercent.value) || 10;
             const isSpray = elSurfaceProcess.value === 'spray';
             
-            // 将输入的 10% 转换回 0.9 的除数系数
-            // 算法：1 - (10 / 100) = 0.9
+            // 将输入的百分比转换回除数系数 (例如 10 -> 0.9, 10.5 -> 0.895)
             const marginFactor = 1 - (profitPercent / 100);
-            const safeMarginFactor = Math.max(marginFactor, 0.01); // 避免除以0或负数
+            const safeMarginFactor = Math.max(marginFactor, 0.01); 
 
             const safeThickness = isSpray ? Math.max(thickness, 1.5) : Math.max(thickness, 0.1);
 
@@ -354,7 +353,6 @@ html_code = """
             }
         }
 
-        // 处理加减号逻辑 (增加了最大值限制的支持)
         document.querySelectorAll('.stepper-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -362,7 +360,6 @@ html_code = """
                 const input = this.parentElement.querySelector('input');
                 const step = parseFloat(input.getAttribute('step')) || 1;
                 const min = parseFloat(input.getAttribute('min')) || 0;
-                // 读取 max 属性，如果没有设置则默认无上限
                 const max = input.hasAttribute('max') ? parseFloat(input.getAttribute('max')) : Infinity;
                 
                 let val = parseFloat(input.value) || 0;
@@ -383,7 +380,6 @@ html_code = """
             });
         });
 
-        // 监听输入
         [elThickness, elAlPrice, elProfitPercent, elInsulThick].forEach(el => {
             el.addEventListener('input', updateUI);
             el.addEventListener('blur', updateUI); 
@@ -399,5 +395,4 @@ html_code = """
 </html>
 """
 
-# 使用 Streamlit 渲染
 components.html(html_code, height=880, scrolling=True)
