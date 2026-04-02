@@ -1,10 +1,12 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64
+import os
 
 # 设置网页布局
 st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 完整的 HTML+CSS+JS 代码
+# 完整的 HTML+CSS+JS 代码 (使用了 LOGO_PLACEHOLDER 作为图片的插槽)
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -28,7 +30,7 @@ html_code = """
         .header {
             background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
             color: white; 
-            padding: 28px 32px; 
+            padding: 32px 32px 28px 32px; 
             border-radius: 20px;
             margin-bottom: 24px; 
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
@@ -87,7 +89,6 @@ html_code = """
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 16px;
-            /* 让下拉框里的文字居中 */
             text-align: center;
             text-align-last: center;
         }
@@ -164,9 +165,9 @@ html_code = """
 
         @media (max-width: 600px) { 
             .param-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 20px;} 
-            .param-label { width: 100%; margin-bottom: 4px; text-align: center;} /* 手机端标签也居中 */
+            .param-label { width: 100%; margin-bottom: 4px; text-align: center;} 
             .total-price { font-size: 2.8rem; } 
-            .header { padding: 24px 20px; }
+            .header { padding: 28px 20px 24px 20px; }
             .control-panel { padding: 24px 20px; }
         }
     </style>
@@ -175,7 +176,8 @@ html_code = """
 
 <div class="container">
     <div class="header">
-        <h1>📊 铝板保温装饰一体板报价系统</h1>
+        LOGO_PLACEHOLDER
+        <h1>铝板保温装饰一体板报价系统</h1>
         <p>参数自由调整 · 实时精准核算</p>
     </div>
 
@@ -397,4 +399,20 @@ html_code = """
 </html>
 """
 
-components.html(html_code, height=880, scrolling=True)
+# ==========================================
+# 动态加载本地的 logo.png 并转为网页能识别的编码
+# ==========================================
+logo_path = "logo.png"
+if os.path.exists(logo_path):
+    with open(logo_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+    # 替换占位符，插入真实图片，高度设为 60px 居中
+    logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 64px; margin-bottom: 12px; object-fit: contain;">'
+else:
+    # 如果 GitHub 上还没上传名字叫 logo.png 的图片，先临时显示一个默认图标防止报错
+    logo_html = '<div style="font-size: 44px; margin-bottom: 10px;">📊</div>'
+
+final_html = html_code.replace("LOGO_PLACEHOLDER", logo_html)
+
+# 使用 Streamlit 渲染最终结果
+components.html(final_html, height=920, scrolling=True)
