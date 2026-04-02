@@ -3,10 +3,27 @@ import streamlit.components.v1 as components
 import base64
 import os
 
-# 设置网页布局
+# 1. 设置网页布局
 st.set_page_config(page_title="铝板保温装饰一体板报价系统", layout="wide")
 
-# 完整的 HTML+CSS+JS 代码
+# 2. 注入 CSS 强制把 Streamlit 的外围背景也变成纯白色，并隐藏多余留白
+st.markdown("""
+    <style>
+    /* 强制 Streamlit 整个页面底色为纯白 */
+    .stApp {
+        background-color: #ffffff !important;
+    }
+    /* 隐藏顶部默认空白和菜单栏，让界面更清爽 */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+    }
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
+# 3. 完整的 HTML+CSS+JS 代码
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -18,9 +35,9 @@ html_code = """
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #ffffff; /* 🌟 这里改成了纯白色 */
+            background: #ffffff; /* 内部网页底色也为白 */
             margin: 0;
-            padding: 20px;
+            padding: 10px 20px;
             color: #1e293b;
         }
         .container { 
@@ -30,20 +47,21 @@ html_code = """
         .header {
             background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
             color: white; 
-            padding: 32px 32px 28px 32px; 
+            padding: 35px 32px 30px 32px; 
             border-radius: 20px;
             margin-bottom: 24px; 
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
             text-align: center;
         }
-        .header h1 { margin: 0 0 10px 0; font-weight: 700; font-size: 1.6rem; letter-spacing: 1px;}
+        .header h1 { margin: 0 0 10px 0; font-weight: 700; font-size: 1.8rem; letter-spacing: 1px;}
         .header p { margin: 0; opacity: 0.8; font-size: 0.95rem; }
         
         .control-panel {
             background: white; 
             border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.06); /* 🌟 加强了一点阴影，使其在白底上更立体 */
+            box-shadow: 0 6px 25px rgba(0,0,0,0.06); 
             padding: 32px; 
+            border: 1px solid #f1f5f9;
         }
         .param-group { margin-bottom: 32px; }
         .param-group h3 { 
@@ -400,7 +418,7 @@ html_code = """
 """
 
 # ==========================================
-# 动态加载本地的 logo.png
+# 动态加载本地的 logo.png (增加了尺寸和抗锯齿优化)
 # ==========================================
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -409,7 +427,8 @@ logo_path = os.path.join(current_dir, "logo.png")
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
-    logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 64px; margin-bottom: 12px; object-fit: contain;">'
+    # 调整了这里：高度增加到了 90px，宽度自适应，并加入高清抗锯齿样式
+    logo_html = f'<img src="data:image/png;base64,{encoded_string}" style="height: 90px; width: auto; margin-bottom: 16px; object-fit: contain; image-rendering: -webkit-optimize-contrast; display: inline-block;">'
 else:
     logo_html = f'<div style="color: yellow; font-size: 14px; margin-bottom: 10px;">(Logo载入中... 请在Streamlit后台点击 Reboot)</div>'
 
