@@ -194,7 +194,7 @@
 <div class="container">
     <div class="header">
         <h1>📊 铝板保温装饰一体板 · 报价系统</h1>
-        <p>铝锭价格 + 毛利系数 可自由调整 | 实时计算报价</p>
+        <p>铝锭价格 + 毛利系数 可自由调整 | 实时计算报价</p >
     </div>
 
     <div class="dashboard">
