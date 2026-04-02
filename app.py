@@ -230,7 +230,7 @@ html_code = """
                 <span class="param-label">今日铝锭 (元/吨)</span>
                 <div class="number-control">
                     <button class="stepper-btn minus">-</button>
-                    <input type="number" id="aluminumPrice" step="500" value="20000" min="10000">
+                    <input type="number" id="aluminumPrice" step="100" value="20000" min="10000">
                     <button class="stepper-btn plus">+</button>
                 </div>
             </div>
@@ -311,7 +311,6 @@ html_code = """
             const profitPercent = parseFloat(elProfitPercent.value) || 10;
             const isSpray = elSurfaceProcess.value === 'spray';
             
-            // 将输入的百分比转换回除数系数 (例如 10 -> 0.9, 10.5 -> 0.895)
             const marginFactor = 1 - (profitPercent / 100);
             const safeMarginFactor = Math.max(marginFactor, 0.01); 
 
